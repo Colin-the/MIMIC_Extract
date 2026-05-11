@@ -1,0 +1,98 @@
+[NbConvertApp] Converting notebook /home/ccampb47/work/MIMIC_Extract/notebooks/mimic_extract_analysis.ipynb to notebook
+Traceback (most recent call last):
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/bin/jupyter-nbconvert", line 6, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/jupyter_core/application.py", line 284, in launch_instance
+    super().launch_instance(argv=argv, **kwargs)
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/traitlets/config/application.py", line 1075, in launch_instance
+    app.start()
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/nbconvertapp.py", line 420, in start
+    self.convert_notebooks()
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/nbconvertapp.py", line 597, in convert_notebooks
+    self.convert_single_notebook(notebook_filename)
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/nbconvertapp.py", line 563, in convert_single_notebook
+    output, resources = self.export_single_notebook(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/nbconvertapp.py", line 487, in export_single_notebook
+    output, resources = self.exporter.from_filename(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/exporters/exporter.py", line 201, in from_filename
+    return self.from_file(f, resources=resources, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/exporters/exporter.py", line 220, in from_file
+    return self.from_notebook_node(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/exporters/notebook.py", line 36, in from_notebook_node
+    nb_copy, resources = super().from_notebook_node(nb, resources, **kw)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/exporters/exporter.py", line 154, in from_notebook_node
+    nb_copy, resources = self._preprocess(nb_copy, resources)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/exporters/exporter.py", line 353, in _preprocess
+    nbc, resc = preprocessor(nbc, resc)
+                ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/preprocessors/base.py", line 48, in __call__
+    return self.preprocess(nb, resources)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/preprocessors/execute.py", line 103, in preprocess
+    self.preprocess_cell(cell, resources, index)
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/preprocessors/execute.py", line 124, in preprocess_cell
+    cell = self.execute_cell(cell, index, store_history=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/jupyter_core/utils/__init__.py", line 165, in wrapped
+    return loop.run_until_complete(inner)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/cvmfs/soft.computecanada.ca/gentoo/2023/x86-64-v3/usr/lib/python3.11/asyncio/base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbclient/client.py", line 1062, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbclient/client.py", line 918, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+for _label in LABELS:
+    for _method in AGG_METHODS:
+        tup  = results_dict_to_impact_tuple(SCENARIO_IMPACT_RESULTS[_label][_method])
+        for metric, scores in [('Accuracy', tup[1]), ('F1', tup[3])]:
+            visualize_scenario_impact(scores, ['baseline'] + SCENARIO_NAMES,
+                                      _label, metric, _method)
+
+------------------
+
+
+[31m---------------------------------------------------------------------------[39m
+[31mValueError[39m                                Traceback (most recent call last)
+[36mCell[39m[36m [39m[32mIn[11][39m[32m, line 5[39m
+[32m      3[39m tup  = results_dict_to_impact_tuple(SCENARIO_IMPACT_RESULTS[_label][_method])
+[32m      4[39m [38;5;28;01mfor[39;00m metric, scores [38;5;129;01min[39;00m [([33m'[39m[33mAccuracy[39m[33m'[39m, tup[[32m1[39m]), ([33m'[39m[33mF1[39m[33m'[39m, tup[[32m3[39m])]:
+[32m----> [39m[32m5[39m     [43mvisualize_scenario_impact[49m[43m([49m[43mscores[49m[43m,[49m[43m [49m[43m[[49m[33;43m'[39;49m[33;43mbaseline[39;49m[33;43m'[39;49m[43m][49m[43m [49m[43m+[49m[43m [49m[43mSCENARIO_NAMES[49m[43m,[49m
+[32m      6[39m [43m                              [49m[43m_label[49m[43m,[49m[43m [49m[43mmetric[49m[43m,[49m[43m [49m[43m_method[49m[43m)[49m
+
+[36mCell[39m[36m [39m[32mIn[4][39m[32m, line 113[39m, in [36mvisualize_scenario_impact[39m[34m(scores, scenario_names, label, metric, aggregation_method, epsilon, min_range)[39m
+[32m    111[39m     ax.axvline(x=idx, color=[33m'[39m[33m#bd3140[39m[33m'[39m, linestyle=[33m'[39m[33m-[39m[33m'[39m, linewidth=[32m0.5[39m, alpha=[32m0.3[39m)
+[32m    112[39m ax.set_xticks(indices)
+[32m--> [39m[32m113[39m [43max[49m[43m.[49m[43mset_xticklabels[49m[43m([49m[43mscenario_names[49m[43m,[49m[43m [49m[43mrotation[49m[43m=[49m[32;43m45[39;49m[43m,[49m[43m [49m[43mha[49m[43m=[49m[33;43m'[39;49m[33;43mright[39;49m[33;43m'[39;49m[43m,[49m[43m [49m[43mfontsize[49m[43m=[49m[32;43m10[39;49m[43m)[49m
+[32m    114[39m dev_range = deviations.max() - deviations.min()
+[32m    115[39m [38;5;28;01mif[39;00m dev_range < min_range:
+
+[36mFile [39m[32m~/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/matplotlib/axes/_base.py:74[39m, in [36m_axis_method_wrapper.__set_name__.<locals>.wrapper[39m[34m(self, *args, **kwargs)[39m
+[32m     73[39m [38;5;28;01mdef[39;00m[38;5;250m [39m[34mwrapper[39m([38;5;28mself[39m, *args, **kwargs):
+[32m---> [39m[32m74[39m     [38;5;28;01mreturn[39;00m [43mget_method[49m[43m([49m[38;5;28;43mself[39;49m[43m)[49m[43m([49m[43m*[49m[43margs[49m[43m,[49m[43m [49m[43m*[49m[43m*[49m[43mkwargs[49m[43m)[49m
+
+[36mFile [39m[32m~/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/matplotlib/axis.py:2106[39m, in [36mAxis.set_ticklabels[39m[34m(self, labels, minor, fontdict, **kwargs)[39m
+[32m   2102[39m [38;5;28;01melif[39;00m [38;5;28misinstance[39m(locator, mticker.FixedLocator):
+[32m   2103[39m     [38;5;66;03m# Passing [] as a list of labels is often used as a way to[39;00m
+[32m   2104[39m     [38;5;66;03m# remove all tick labels, so only error for > 0 labels[39;00m
+[32m   2105[39m     [38;5;28;01mif[39;00m [38;5;28mlen[39m(locator.locs) != [38;5;28mlen[39m(labels) [38;5;129;01mand[39;00m [38;5;28mlen[39m(labels) != [32m0[39m:
+[32m-> [39m[32m2106[39m         [38;5;28;01mraise[39;00m [38;5;167;01mValueError[39;00m(
+[32m   2107[39m             [33m"[39m[33mThe number of FixedLocator locations[39m[33m"[39m
+[32m   2108[39m             [33mf[39m[33m"[39m[33m ([39m[38;5;132;01m{[39;00m[38;5;28mlen[39m(locator.locs)[38;5;132;01m}[39;00m[33m), usually from a call to[39m[33m"[39m
+[32m   2109[39m             [33m"[39m[33m set_ticks, does not match[39m[33m"[39m
+[32m   2110[39m             [33mf[39m[33m"[39m[33m the number of labels ([39m[38;5;132;01m{[39;00m[38;5;28mlen[39m(labels)[38;5;132;01m}[39;00m[33m).[39m[33m"[39m)
+[32m   2111[39m     tickd = {loc: lab [38;5;28;01mfor[39;00m loc, lab [38;5;129;01min[39;00m [38;5;28mzip[39m(locator.locs, labels)}
+[32m   2112[39m     func = functools.partial([38;5;28mself[39m._format_with_dict, tickd)
+
+[31mValueError[39m: The number of FixedLocator locations (12), usually from a call to set_ticks, does not match the number of labels (13).
+

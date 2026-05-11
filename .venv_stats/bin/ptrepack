@@ -1,0 +1,6 @@
+#!/home/ccampb47/work/MIMIC_Extract/.venv_stats/bin/python3
+import sys
+from tables.scripts.ptrepack import main
+if __name__ == '__main__':
+    sys.argv[0] = sys.argv[0].removesuffix('.exe')
+    sys.exit(main())

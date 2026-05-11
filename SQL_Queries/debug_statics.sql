@@ -1,5 +1,5 @@
 \echo "This file is just for debugging"
-SET search_path TO mimiciii;
+SET search_path TO public,mimiciii;
 select distinct
     i.subject_id,
     i.hadm_id,
@@ -53,9 +53,8 @@ FROM icustay_detail i
     INNER JOIN icustays s ON i.icustay_id = s.icustay_id
     INNER JOIN code_status c ON i.icustay_id = c.icustay_id
     LEFT OUTER JOIN (SELECT d.icustay_id, 1 as readmission_30
-              FROM icustays c, icustays d
-              WHERE c.subject_id=d.subject_id
-              AND c.icustay_id > d.icustay_id
+              FROM icustays c JOIN icustays d ON c.subject_id=d.subject_id
+              WHERE c.icustay_id > d.icustay_id
               AND c.intime - d.outtime <= interval '30 days'
               AND c.outtime = (SELECT MIN(e.outtime) from icustays e 
                                 WHERE e.subject_id=c.subject_id
@@ -78,4 +77,4 @@ WHERE s.first_careunit NOT like 'NICU'
     and i.los_icu >= 1
     and (i.outtime >= (i.intime + interval '12 hours'))
     and (i.outtime <= (i.intime + interval '250 hours'))
-ORDER BY subject_id
+ORDER BY i.subject_id

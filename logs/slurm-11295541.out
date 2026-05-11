@@ -1,0 +1,220 @@
+Using DuckDB mode: /scratch/ccampb47/mimic_data.duckdb
+=== MIMIC-Extract Docker Pipeline ===
+PGHOST=localhost PGDATABASE=mimic POP_SIZE=0 NUMERICS_BATCH_SIZE=2500 EXTRACT_ALL_NUMERICS=0
+EXTRACT_POP=1 EXTRACT_NUMERICS=1 EXTRACT_OUTCOMES=2
+MIN_AGE=30 MAX_AGE=40 MIN_DURATION=12 MAX_DURATION=240 MIN_PERCENT=0
+
+Using DuckDB mode: /scratch/ccampb47/mimic_data.duckdb
+Skipping PostgreSQL wait and data load steps.
+
+Skipping data load and concept building (DuckDB mode)
+running MIMIC-Extract
+Using DuckDB: /scratch/ccampb47/mimic_data.duckdb
+Running!
+db_path /scratch/ccampb47/mimic_data.duckdb
+exit_after_loading 0
+extract_all_numerics False
+extract_codes 0
+extract_notes 0
+extract_numerics 1
+extract_outcomes 2
+extract_pop 1
+group_by_level2 True
+max_age 40
+max_duration 240
+min_age 30
+min_duration 12
+min_percent 0.0
+numerics_batch_size 2500
+out_path /opt/mimic-extract/data/curated/age35_range10/
+plot_hist 0
+pop_size 0
+psql_dbname mimic
+psql_host None
+psql_password None
+psql_schema_name public,mimiciii
+psql_user None
+queries_path /opt/mimic-extract/SQL_Queries/
+resource_path /opt/mimic-extract/resources/
+var_limits 1
+Using DuckDB: /scratch/ccampb47/mimic_data.duckdb
+Reloading data from /opt/mimic-extract/data/curated/age35_range10/static_data.csv
+loaded static_data
+[2026-03-31 02:57:33 UTC] Stage static: cohort ready (1837 icustays); DB queries will use this exclusion set
+Reloading X from /opt/mimic-extract/data/curated/age35_range10/vitals_hourly_data.h5
+LOADED vitals_hourly_data
+SKIPPED codes_data
+SKIPPED notes_data
+Saving Outcomes...
+/opt/mimic-extract/mimic_direct_extract.py:527: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  vent_data = vent_data.apply(add_outcome_indicators)
+/opt/mimic-extract/mimic_direct_extract.py:549: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  out_data = out_data.apply(add_blank_indicators)
+/opt/mimic-extract/mimic_direct_extract.py:587: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted vaso from vasopressor_durations
+/opt/mimic-extract/mimic_direct_extract.py:587: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted adenosine from adenosine_durations
+/opt/mimic-extract/mimic_direct_extract.py:587: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted dobutamine from dobutamine_durations
+/opt/mimic-extract/mimic_direct_extract.py:587: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted dopamine from dopamine_durations
+/opt/mimic-extract/mimic_direct_extract.py:587: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted epinephrine from epinephrine_durations
+/opt/mimic-extract/mimic_direct_extract.py:587: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Column  isuprel  not in data.
+/opt/mimic-extract/mimic_direct_extract.py:587: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted milrinone from milrinone_durations
+/opt/mimic-extract/mimic_direct_extract.py:587: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted norepinephrine from norepinephrine_durations
+/opt/mimic-extract/mimic_direct_extract.py:587: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted phenylephrine from phenylephrine_durations
+/opt/mimic-extract/mimic_direct_extract.py:587: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted vasopressin from vasopressin_durations
+/opt/mimic-extract/mimic_direct_extract.py:645: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted colloid_bolus
+/opt/mimic-extract/mimic_direct_extract.py:645: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted crystalloid_bolus
+/opt/mimic-extract/mimic_direct_extract.py:645: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted nivdurations
+Shape of Y :  (106332, 13)
+/opt/mimic-extract/mimic_direct_extract.py:705: FutureWarning: Starting with pandas version 3.0 all arguments of to_hdf except for the argument 'path_or_buf' will be keyword-only.
+  Y.to_hdf(os.path.join(outPath, outcome_hd5_filename), 'Y')
+Numerics (106332, 21) ['subject_id', 'hadm_id', 'icustay_id', 'hours_in'] ['LEVEL2', 'Aggregation Function']
+Outcomes (106332, 14) ['subject_id', 'hadm_id', 'icustay_id', 'hours_in'] [None] Index(['vent', 'vaso', 'adenosine', 'dobutamine', 'dopamine', 'epinephrine',
+       'isuprel', 'milrinone', 'norepinephrine', 'phenylephrine',
+       'vasopressin', 'colloid_bolus', 'crystalloid_bolus', 'nivdurations'],
+      dtype='object')
+(1837, 28) ['subject_id', 'hadm_id', 'icustay_id'] [None]
+Shape of X :  (106332, 21)
+Shape of Y :  (106332, 14)
+Shape of static :  (1837, 28)
+Variable names :  diastolic blood pressure,diastolic blood pressure,diastolic blood pressure,heart rate,heart rate,heart rate,mean blood pressure,mean blood pressure,mean blood pressure,oxygen saturation,oxygen saturation,oxygen saturation,respiratory rate,respiratory rate,respiratory rate,systolic blood pressure,systolic blood pressure,systolic blood pressure,temperature,temperature,temperature
+Output names :  dobutamine,dopamine,epinephrine,isuprel,milrinone,norepinephrine,phenylephrine,vasopressin,colloid_bolus,crystalloid_bolus,nivdurations
+Static data :  insurance,admittime,diagnosis_at_admission,dischtime,discharge_location,fullcode_first,dnr_first,fullcode,dnr,dnr_first_charttime,timecmo_chart,cmo_first,cmo_last,cmo,deathtime,intime,outtime,los_icu,admission_type,first_careunit,mort_icu,mort_hosp,hospital_expire_flag,hospstay_seq,readmission_30
+/opt/mimic-extract/mimic_direct_extract.py:1214: FutureWarning: Starting with pandas version 3.0 all arguments of to_hdf except for the argument 'path_or_buf' will be keyword-only.
+  X.to_hdf(os.path.join(outPath, dynamic_hd5_filt_filename), 'vitals_labs')
+/opt/conda/envs/mimic_data_extraction/lib/python3.9/site-packages/tables/attributeset.py:457: NaturalNameWarning: object name is not a valid Python identifier: 'axis0_nameAggregation Function'; it does not match the pattern ``^[a-zA-Z_][a-zA-Z0-9_]*$``; you will not be able to use natural naming to access this object; using ``getattr()`` will still work, though
+  check_attribute_name(name)
+/opt/conda/envs/mimic_data_extraction/lib/python3.9/site-packages/tables/attributeset.py:457: NaturalNameWarning: object name is not a valid Python identifier: 'block0_items_nameAggregation Function'; it does not match the pattern ``^[a-zA-Z_][a-zA-Z0-9_]*$``; you will not be able to use natural naming to access this object; using ``getattr()`` will still work, though
+  check_attribute_name(name)
+/opt/mimic-extract/mimic_direct_extract.py:1215: FutureWarning: Starting with pandas version 3.0 all arguments of to_hdf except for the argument 'path_or_buf' will be keyword-only.
+  Y.to_hdf(os.path.join(outPath, dynamic_hd5_filt_filename), 'interventions')
+/opt/mimic-extract/mimic_direct_extract.py:1217: FutureWarning: Starting with pandas version 3.0 all arguments of to_hdf except for the argument 'path_or_buf' will be keyword-only.
+  data.to_hdf(os.path.join(outPath, dynamic_hd5_filt_filename), 'patients', format='table')
+/opt/mimic-extract/mimic_direct_extract.py:1225: FutureWarning: Starting with pandas version 3.0 all arguments of to_hdf except for the argument 'path_or_buf' will be keyword-only.
+  X_mean.to_hdf(os.path.join(outPath, dynamic_hd5_filt_filename), 'vitals_labs_mean')
+/opt/conda/envs/mimic_data_extraction/lib/python3.9/site-packages/tables/attributeset.py:457: NaturalNameWarning: object name is not a valid Python identifier: 'axis0_nameAggregation Function'; it does not match the pattern ``^[a-zA-Z_][a-zA-Z0-9_]*$``; you will not be able to use natural naming to access this object; using ``getattr()`` will still work, though
+  check_attribute_name(name)
+/opt/conda/envs/mimic_data_extraction/lib/python3.9/site-packages/tables/attributeset.py:457: NaturalNameWarning: object name is not a valid Python identifier: 'block0_items_nameAggregation Function'; it does not match the pattern ``^[a-zA-Z_][a-zA-Z0-9_]*$``; you will not be able to use natural naming to access this object; using ``getattr()`` will still work, though
+  check_attribute_name(name)
+
+('diastolic blood pressure', 'count'): 100.0% present
+('diastolic blood pressure', 'mean'): 83.5% present
+('diastolic blood pressure', 'std'): 11.600000000000001% present
+('heart rate', 'count'): 100.0% present
+('heart rate', 'mean'): 87.5% present
+('heart rate', 'std'): 7.7% present
+('mean blood pressure', 'count'): 100.0% present
+('mean blood pressure', 'mean'): 82.8% present
+('mean blood pressure', 'std'): 11.4% present
+('oxygen saturation', 'count'): 100.0% present
+('oxygen saturation', 'mean'): 82.69999999999999% present
+('oxygen saturation', 'std'): 10.0% present
+('respiratory rate', 'count'): 100.0% present
+('respiratory rate', 'mean'): 85.5% present
+('respiratory rate', 'std'): 13.700000000000001% present
+('systolic blood pressure', 'count'): 100.0% present
+('systolic blood pressure', 'mean'): 83.5% present
+('systolic blood pressure', 'std'): 11.600000000000001% present
+('temperature', 'count'): 100.0% present
+('temperature', 'mean'): 27.3% present
+('temperature', 'std'): 17.299999999999997% present
+% of subjects had at least 1 present
+0: 100.0%
+1: 99.6%
+2: 67.4%
+3: 100.0%
+4: 99.6%
+5: 64.4%
+6: 100.0%
+7: 99.6%
+8: 65.9%
+9: 100.0%
+10: 99.3%
+11: 67.5%
+12: 100.0%
+13: 99.1%
+14: 71.2%
+15: 100.0%
+16: 99.6%
+17: 67.60000000000001%
+18: 100.0%
+19: 99.2%
+20: 62.1%
+
+
+% of subjects had at least 2 present
+0: 100.0%
+1: 99.6%
+2: 54.50000000000001%
+3: 100.0%
+4: 99.6%
+5: 49.2%
+6: 100.0%
+7: 99.5%
+8: 53.0%
+9: 100.0%
+10: 99.3%
+11: 53.7%
+12: 100.0%
+13: 99.1%
+14: 58.599999999999994%
+15: 100.0%
+16: 99.6%
+17: 54.50000000000001%
+18: 100.0%
+19: 98.4%
+20: 60.5%
+
+
+% of subjects had at least 3 present
+0: 100.0%
+1: 99.6%
+2: 45.2%
+3: 100.0%
+4: 99.6%
+5: 40.0%
+6: 100.0%
+7: 99.5%
+8: 44.4%
+9: 100.0%
+10: 99.2%
+11: 44.7%
+12: 100.0%
+13: 98.9%
+14: 50.7%
+15: 100.0%
+16: 99.6%
+17: 45.4%
+18: 100.0%
+19: 95.39999999999999%
+20: 58.199999999999996%
+
+
+Done!
+
+pipeline complete. Output in /opt/mimic-extract/data/curated/age35_range10
+Done: age35_range10

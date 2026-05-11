@@ -5,7 +5,8 @@
 # string replacements are necessary for some queries
 export REGEX_DATETIME_DIFF="s/DATETIME_DIFF\((.+?),\s?(.+?),\s?(DAY|MINUTE|SECOND|HOUR|YEAR)\)/DATETIME_DIFF(\1, \2, '\3')/g"
 export REGEX_SCHEMA='s/`physionet-data.(mimiciii_clinical|mimiciii_derived|mimiciii_notes).(.+?)`/\2/g'
-export CONNSTR='-d mimic'
+# Use CONNSTR from environment (e.g. Docker: -h postgres -p 5432 -U mimic -d mimic) if set
+[ -z "$CONNSTR" ] && export CONNSTR='-d mimic'
 
 # this is set as the search_path variable for psql
 # a search path of "public,mimiciii" will search both public and mimiciii

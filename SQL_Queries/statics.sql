@@ -46,9 +46,8 @@ FROM icustay_detail i
     INNER JOIN icustays s ON i.icustay_id = s.icustay_id
     INNER JOIN code_status c ON i.icustay_id = c.icustay_id
     LEFT OUTER JOIN (SELECT d.icustay_id, 1 as readmission_30
-              FROM icustays c, icustays d
-              WHERE c.subject_id=d.subject_id
-              AND c.icustay_id > d.icustay_id
+              FROM icustays c JOIN icustays d ON c.subject_id=d.subject_id
+              WHERE c.icustay_id > d.icustay_id
               AND c.intime - d.outtime <= interval '30 days'
               AND c.outtime = (SELECT MIN(e.outtime) from icustays e 
                                 WHERE e.subject_id=c.subject_id
@@ -68,8 +67,9 @@ WHERE s.first_careunit NOT like 'NICU'
     and i.hospstay_seq = 1
     and i.icustay_seq = 1
     and i.admission_age >= {min_age}
+    and i.admission_age <= {max_age}
     and i.los_icu >= {min_day}
     and (i.outtime >= (i.intime + interval '{min_dur} hours'))
     and (i.outtime <= (i.intime + interval '{max_dur} hours'))
-ORDER BY subject_id
+ORDER BY i.subject_id
 {limit}

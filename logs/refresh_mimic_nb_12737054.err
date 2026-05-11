@@ -1,0 +1,52 @@
+[NbConvertApp] Converting notebook /home/ccampb47/work/MIMIC_Extract/notebooks/curated_mimic_iii_analysis_executed copy.ipynb to notebook
+[NbConvertApp] ERROR | Notebook JSON is invalid: 'name' is a required property
+
+Failed validating 'required' in stream:
+
+On instance['cells'][3]['outputs'][0]:
+{'output_type': 'stream',
+ 'text': 'Curated root: /opt/mimic-extract/data/curated\nVariants: 13\n'}
+[NbConvertApp] ERROR | Notebook is invalid after preprocessor <nbconvert.preprocessors.tagremove.TagRemovePreprocessor object at 0x14cb5c6a7e50>
+Traceback (most recent call last):
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/bin/jupyter-nbconvert", line 6, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/jupyter_core/application.py", line 284, in launch_instance
+    super().launch_instance(argv=argv, **kwargs)
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/traitlets/config/application.py", line 1075, in launch_instance
+    app.start()
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/nbconvertapp.py", line 420, in start
+    self.convert_notebooks()
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/nbconvertapp.py", line 597, in convert_notebooks
+    self.convert_single_notebook(notebook_filename)
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/nbconvertapp.py", line 563, in convert_single_notebook
+    output, resources = self.export_single_notebook(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/nbconvertapp.py", line 487, in export_single_notebook
+    output, resources = self.exporter.from_filename(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/exporters/exporter.py", line 201, in from_filename
+    return self.from_file(f, resources=resources, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/exporters/exporter.py", line 220, in from_file
+    return self.from_notebook_node(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/exporters/notebook.py", line 36, in from_notebook_node
+    nb_copy, resources = super().from_notebook_node(nb, resources, **kw)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/exporters/exporter.py", line 154, in from_notebook_node
+    nb_copy, resources = self._preprocess(nb_copy, resources)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/exporters/exporter.py", line 355, in _preprocess
+    self._validate_preprocessor(nbc, preprocessor)
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/exporters/exporter.py", line 322, in _validate_preprocessor
+    nbformat.validate(nbc, relax_add_props=True)
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbformat/validator.py", line 509, in validate
+    raise error
+nbformat.validator.NotebookValidationError: 'name' is a required property
+
+Failed validating 'required' in stream:
+
+On instance['cells'][3]['outputs'][0]:
+{'output_type': 'stream',
+ 'text': 'Curated root: /opt/mimic-extract/data/curated\nVariants: 13\n'}

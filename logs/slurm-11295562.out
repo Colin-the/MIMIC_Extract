@@ -1,0 +1,546 @@
+Using DuckDB mode: /scratch/ccampb47/mimic_data.duckdb
+=== MIMIC-Extract Docker Pipeline ===
+PGHOST=localhost PGDATABASE=mimic POP_SIZE=0 NUMERICS_BATCH_SIZE=2500 EXTRACT_ALL_NUMERICS=0
+EXTRACT_POP=1 EXTRACT_NUMERICS=2 EXTRACT_OUTCOMES=2
+MIN_AGE=15 MAX_AGE=999 MIN_DURATION=48 MAX_DURATION=240 MIN_PERCENT=0
+
+Using DuckDB mode: /scratch/ccampb47/mimic_data.duckdb
+Skipping PostgreSQL wait and data load steps.
+
+Skipping data load and concept building (DuckDB mode)
+running MIMIC-Extract
+Using DuckDB: /scratch/ccampb47/mimic_data.duckdb
+Running!
+db_path /scratch/ccampb47/mimic_data.duckdb
+exit_after_loading 0
+extract_all_numerics False
+extract_codes 0
+extract_notes 0
+extract_numerics 2
+extract_outcomes 2
+extract_pop 1
+group_by_level2 True
+max_age 999
+max_duration 240
+min_age 15
+min_duration 48
+min_percent 0.0
+numerics_batch_size 2500
+out_path /opt/mimic-extract/data/curated/min48hr/
+plot_hist 0
+pop_size 0
+psql_dbname mimic
+psql_host None
+psql_password None
+psql_schema_name public,mimiciii
+psql_user None
+queries_path /opt/mimic-extract/SQL_Queries/
+resource_path /opt/mimic-extract/resources/
+var_limits 1
+Using DuckDB: /scratch/ccampb47/mimic_data.duckdb
+Reloading data from /opt/mimic-extract/data/curated/min48hr/static_data.csv
+loaded static_data
+[2026-03-31 02:57:32 UTC] Stage static: cohort ready (17013 icustays); DB queries will use this exclusion set
+Extracting vitals data...
+[2026-03-31 02:57:32 UTC] Stage vitals: starting (extract_all_numerics=False)
+[2026-03-31 02:57:33 UTC] Numerics: using 65 / 313 mapping rows (core vitals only: Diastolic blood pressure, Heart Rate, Mean blood pressure, Oxygen saturation, Respiratory rate, Systolic blood pressure, Temperature)
+[2026-03-31 02:57:33 UTC] Stage vitals: itemid sets — chart=64, lab=1 (query will restrict to these)
+  processing 17013 icustays in 7 batches of 2500...
+[2026-03-31 02:57:33 UTC] Stage vitals: batched mode — 17013 icustays in 7 batches of 2500
+  batch 1/7: 2500 icustays
+[2026-03-31 02:57:33 UTC] Vitals batch 1/7: starting SQL (2500 icustays) [0s since vitals start]
+[2026-03-31 02:58:03 UTC] Vitals batch 1/7: SQL returned 1883739 rows in 30.3s [30s since vitals start]
+[2026-03-31 02:58:04 UTC] [batch 1/7] save_numerics: raw query rows=1883739, icustays in cohort=2500
+[2026-03-31 02:58:09 UTC] [batch 1/7] save_numerics: joined var_map + d_items
+Oxygen saturation had 6 / 289537 rows cleaned:
+  5 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  1 rows were high valid outliers, set to 100.00
+
+Systolic blood pressure had 1 / 282004 rows cleaned:
+  1 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  0 rows were high valid outliers, set to 375.00
+
+Heart Rate had 1 / 284789 rows cleaned:
+  1 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  0 rows were high valid outliers, set to 350.00
+
+Mean blood pressure had 254 / 282690 rows cleaned:
+  75 rows were strict outliers, set to np.nan
+  163 rows were low valid outliers, set to 14.00
+  16 rows were high valid outliers, set to 330.00
+
+Diastolic blood pressure had 13 / 281820 rows cleaned:
+  13 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  0 rows were high valid outliers, set to 375.00
+
+Respiratory rate had 4 / 323888 rows cleaned:
+  3 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  1 rows were high valid outliers, set to 300.00
+
+Temperature had 125 / 134795 rows cleaned:
+  120 rows were strict outliers, set to np.nan
+  5 rows were low valid outliers, set to 26.00
+  0 rows were high valid outliers, set to 45.00
+
+[2026-03-31 02:58:17 UTC] [batch 1/7] save_numerics: variable limits applied
+[2026-03-31 02:58:17 UTC] [batch 1/7] save_numerics: aggregating by hour (groupby)...
+/opt/mimic-extract/mimic_direct_extract.py:302: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  data['max_hours'] = (data['outtime'] - data['intime']).apply(to_hours)
+[2026-03-31 02:58:18 UTC] [batch 1/7] save_numerics: unstack / reindex full hour grid...
+[2026-03-31 02:58:18 UTC] [batch 1/7] save_numerics: tensor shape (243990, 21)
+  batch 2/7: 2500 icustays
+[2026-03-31 02:58:18 UTC] Vitals batch 2/7: starting SQL (2500 icustays) [46s since vitals start]
+[2026-03-31 02:58:50 UTC] Vitals batch 2/7: SQL returned 1814693 rows in 31.5s [77s since vitals start]
+[2026-03-31 02:58:51 UTC] [batch 2/7] save_numerics: raw query rows=1814693, icustays in cohort=2500
+[2026-03-31 02:58:55 UTC] [batch 2/7] save_numerics: joined var_map + d_items
+Oxygen saturation had 3 / 272822 rows cleaned:
+  2 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  1 rows were high valid outliers, set to 100.00
+
+Systolic blood pressure had 2 / 276787 rows cleaned:
+  2 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  0 rows were high valid outliers, set to 375.00
+
+Heart Rate had 1 / 267835 rows cleaned:
+  1 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  0 rows were high valid outliers, set to 350.00
+
+Mean blood pressure had 237 / 277928 rows cleaned:
+  29 rows were strict outliers, set to np.nan
+  180 rows were low valid outliers, set to 14.00
+  28 rows were high valid outliers, set to 330.00
+
+Diastolic blood pressure had 11 / 276609 rows cleaned:
+  11 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  0 rows were high valid outliers, set to 375.00
+
+Respiratory rate had 1 / 299384 rows cleaned:
+  1 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  0 rows were high valid outliers, set to 300.00
+
+Temperature had 113 / 136419 rows cleaned:
+  108 rows were strict outliers, set to np.nan
+  5 rows were low valid outliers, set to 26.00
+  0 rows were high valid outliers, set to 45.00
+
+[2026-03-31 02:59:03 UTC] [batch 2/7] save_numerics: variable limits applied
+[2026-03-31 02:59:03 UTC] [batch 2/7] save_numerics: aggregating by hour (groupby)...
+/opt/mimic-extract/mimic_direct_extract.py:302: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  data['max_hours'] = (data['outtime'] - data['intime']).apply(to_hours)
+[2026-03-31 02:59:04 UTC] [batch 2/7] save_numerics: unstack / reindex full hour grid...
+[2026-03-31 02:59:04 UTC] [batch 2/7] save_numerics: tensor shape (243354, 21)
+  batch 3/7: 2500 icustays
+[2026-03-31 02:59:04 UTC] Vitals batch 3/7: starting SQL (2500 icustays) [92s since vitals start]
+[2026-03-31 02:59:33 UTC] Vitals batch 3/7: SQL returned 1938034 rows in 28.8s [121s since vitals start]
+[2026-03-31 02:59:34 UTC] [batch 3/7] save_numerics: raw query rows=1938034, icustays in cohort=2500
+[2026-03-31 02:59:40 UTC] [batch 3/7] save_numerics: joined var_map + d_items
+Oxygen saturation had 2 / 292936 rows cleaned:
+  1 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  1 rows were high valid outliers, set to 100.00
+
+Mean blood pressure had 229 / 288951 rows cleaned:
+  51 rows were strict outliers, set to np.nan
+  161 rows were low valid outliers, set to 14.00
+  17 rows were high valid outliers, set to 330.00
+
+Diastolic blood pressure had 15 / 288128 rows cleaned:
+  15 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  0 rows were high valid outliers, set to 375.00
+
+Respiratory rate had 3 / 343074 rows cleaned:
+  3 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  0 rows were high valid outliers, set to 300.00
+
+Temperature had 105 / 137092 rows cleaned:
+  102 rows were strict outliers, set to np.nan
+  3 rows were low valid outliers, set to 26.00
+  0 rows were high valid outliers, set to 45.00
+
+[2026-03-31 02:59:48 UTC] [batch 3/7] save_numerics: variable limits applied
+[2026-03-31 02:59:48 UTC] [batch 3/7] save_numerics: aggregating by hour (groupby)...
+/opt/mimic-extract/mimic_direct_extract.py:302: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  data['max_hours'] = (data['outtime'] - data['intime']).apply(to_hours)
+[2026-03-31 02:59:48 UTC] [batch 3/7] save_numerics: unstack / reindex full hour grid...
+[2026-03-31 02:59:48 UTC] [batch 3/7] save_numerics: tensor shape (242722, 21)
+  batch 4/7: 2500 icustays
+[2026-03-31 02:59:48 UTC] Vitals batch 4/7: starting SQL (2500 icustays) [136s since vitals start]
+[2026-03-31 03:00:19 UTC] Vitals batch 4/7: SQL returned 1908446 rows in 30.7s [167s since vitals start]
+[2026-03-31 03:00:20 UTC] [batch 4/7] save_numerics: raw query rows=1908446, icustays in cohort=2500
+[2026-03-31 03:00:25 UTC] [batch 4/7] save_numerics: joined var_map + d_items
+Oxygen saturation had 3 / 290877 rows cleaned:
+  3 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  0 rows were high valid outliers, set to 100.00
+
+Mean blood pressure had 283 / 286090 rows cleaned:
+  48 rows were strict outliers, set to np.nan
+  216 rows were low valid outliers, set to 14.00
+  19 rows were high valid outliers, set to 330.00
+
+Diastolic blood pressure had 10 / 285413 rows cleaned:
+  10 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  0 rows were high valid outliers, set to 375.00
+
+Respiratory rate had 3 / 333232 rows cleaned:
+  3 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  0 rows were high valid outliers, set to 300.00
+
+Temperature had 138 / 135608 rows cleaned:
+  138 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 26.00
+  0 rows were high valid outliers, set to 45.00
+
+[2026-03-31 03:00:33 UTC] [batch 4/7] save_numerics: variable limits applied
+[2026-03-31 03:00:33 UTC] [batch 4/7] save_numerics: aggregating by hour (groupby)...
+/opt/mimic-extract/mimic_direct_extract.py:302: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  data['max_hours'] = (data['outtime'] - data['intime']).apply(to_hours)
+[2026-03-31 03:00:34 UTC] [batch 4/7] save_numerics: unstack / reindex full hour grid...
+[2026-03-31 03:00:34 UTC] [batch 4/7] save_numerics: tensor shape (247318, 21)
+  batch 5/7: 2500 icustays
+[2026-03-31 03:00:34 UTC] Vitals batch 5/7: starting SQL (2500 icustays) [182s since vitals start]
+[2026-03-31 03:01:10 UTC] Vitals batch 5/7: SQL returned 1801585 rows in 35.4s [217s since vitals start]
+[2026-03-31 03:01:11 UTC] [batch 5/7] save_numerics: raw query rows=1801585, icustays in cohort=2500
+[2026-03-31 03:01:16 UTC] [batch 5/7] save_numerics: joined var_map + d_items
+Oxygen saturation had 7 / 270092 rows cleaned:
+  6 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  1 rows were high valid outliers, set to 100.00
+
+Mean blood pressure had 206 / 276582 rows cleaned:
+  41 rows were strict outliers, set to np.nan
+  150 rows were low valid outliers, set to 14.00
+  15 rows were high valid outliers, set to 330.00
+
+Diastolic blood pressure had 14 / 275928 rows cleaned:
+  14 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  0 rows were high valid outliers, set to 375.00
+
+Respiratory rate had 3 / 295997 rows cleaned:
+  2 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  1 rows were high valid outliers, set to 300.00
+
+Temperature had 78 / 135051 rows cleaned:
+  74 rows were strict outliers, set to np.nan
+  4 rows were low valid outliers, set to 26.00
+  0 rows were high valid outliers, set to 45.00
+
+[2026-03-31 03:01:23 UTC] [batch 5/7] save_numerics: variable limits applied
+[2026-03-31 03:01:23 UTC] [batch 5/7] save_numerics: aggregating by hour (groupby)...
+/opt/mimic-extract/mimic_direct_extract.py:302: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  data['max_hours'] = (data['outtime'] - data['intime']).apply(to_hours)
+[2026-03-31 03:01:23 UTC] [batch 5/7] save_numerics: unstack / reindex full hour grid...
+[2026-03-31 03:01:24 UTC] [batch 5/7] save_numerics: tensor shape (246114, 21)
+  batch 6/7: 2500 icustays
+[2026-03-31 03:01:24 UTC] Vitals batch 6/7: starting SQL (2500 icustays) [231s since vitals start]
+[2026-03-31 03:01:57 UTC] Vitals batch 6/7: SQL returned 1812294 rows in 33.4s [265s since vitals start]
+[2026-03-31 03:01:59 UTC] [batch 6/7] save_numerics: raw query rows=1812294, icustays in cohort=2500
+[2026-03-31 03:02:04 UTC] [batch 6/7] save_numerics: joined var_map + d_items
+Oxygen saturation had 4 / 271484 rows cleaned:
+  4 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  0 rows were high valid outliers, set to 100.00
+
+Heart Rate had 1 / 266072 rows cleaned:
+  1 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  0 rows were high valid outliers, set to 350.00
+
+Mean blood pressure had 238 / 278287 rows cleaned:
+  49 rows were strict outliers, set to np.nan
+  173 rows were low valid outliers, set to 14.00
+  16 rows were high valid outliers, set to 330.00
+
+Diastolic blood pressure had 10 / 277682 rows cleaned:
+  10 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  0 rows were high valid outliers, set to 375.00
+
+Respiratory rate had 5 / 294350 rows cleaned:
+  5 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  0 rows were high valid outliers, set to 300.00
+
+Temperature had 92 / 138049 rows cleaned:
+  86 rows were strict outliers, set to np.nan
+  6 rows were low valid outliers, set to 26.00
+  0 rows were high valid outliers, set to 45.00
+
+[2026-03-31 03:02:11 UTC] [batch 6/7] save_numerics: variable limits applied
+[2026-03-31 03:02:11 UTC] [batch 6/7] save_numerics: aggregating by hour (groupby)...
+/opt/mimic-extract/mimic_direct_extract.py:302: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  data['max_hours'] = (data['outtime'] - data['intime']).apply(to_hours)
+[2026-03-31 03:02:12 UTC] [batch 6/7] save_numerics: unstack / reindex full hour grid...
+[2026-03-31 03:02:12 UTC] [batch 6/7] save_numerics: tensor shape (248172, 21)
+  batch 7/7: 2013 icustays
+[2026-03-31 03:02:12 UTC] Vitals batch 7/7: starting SQL (2013 icustays) [280s since vitals start]
+[2026-03-31 03:02:43 UTC] Vitals batch 7/7: SQL returned 1474190 rows in 30.6s [310s since vitals start]
+[2026-03-31 03:02:44 UTC] [batch 7/7] save_numerics: raw query rows=1474190, icustays in cohort=2013
+[2026-03-31 03:02:48 UTC] [batch 7/7] save_numerics: joined var_map + d_items
+Oxygen saturation had 3 / 226183 rows cleaned:
+  2 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  1 rows were high valid outliers, set to 100.00
+
+Systolic blood pressure had 1 / 221777 rows cleaned:
+  1 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  0 rows were high valid outliers, set to 375.00
+
+Mean blood pressure had 227 / 222555 rows cleaned:
+  60 rows were strict outliers, set to np.nan
+  151 rows were low valid outliers, set to 14.00
+  16 rows were high valid outliers, set to 330.00
+
+Diastolic blood pressure had 6 / 221623 rows cleaned:
+  6 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  0 rows were high valid outliers, set to 375.00
+
+Respiratory rate had 1 / 247940 rows cleaned:
+  1 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 0.00
+  0 rows were high valid outliers, set to 300.00
+
+Temperature had 70 / 106182 rows cleaned:
+  70 rows were strict outliers, set to np.nan
+  0 rows were low valid outliers, set to 26.00
+  0 rows were high valid outliers, set to 45.00
+
+[2026-03-31 03:02:54 UTC] [batch 7/7] save_numerics: variable limits applied
+[2026-03-31 03:02:54 UTC] [batch 7/7] save_numerics: aggregating by hour (groupby)...
+/opt/mimic-extract/mimic_direct_extract.py:302: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  data['max_hours'] = (data['outtime'] - data['intime']).apply(to_hours)
+[2026-03-31 03:02:55 UTC] [batch 7/7] save_numerics: unstack / reindex full hour grid...
+[2026-03-31 03:02:55 UTC] [batch 7/7] save_numerics: tensor shape (196255, 21)
+  db queries finished after 322.383 sec
+[2026-03-31 03:02:55 UTC] Stage vitals: all batch SQL done; concatenating 7 batch tensors...
+Shape of X (combined):  (1667925, 21)
+[2026-03-31 03:02:55 UTC] finalize_numerics: combined X shape (1667925, 21) — writing HDF5/columns...
+/opt/mimic-extract/mimic_direct_extract.py:402: FutureWarning: Starting with pandas version 3.0 all arguments of to_hdf except for the argument 'path_or_buf' will be keyword-only.
+  X.to_hdf(os.path.join(outPath, dynamic_hd5_filename), 'X')
+/opt/conda/envs/mimic_data_extraction/lib/python3.9/site-packages/tables/attributeset.py:457: NaturalNameWarning: object name is not a valid Python identifier: 'axis0_nameAggregation Function'; it does not match the pattern ``^[a-zA-Z_][a-zA-Z0-9_]*$``; you will not be able to use natural naming to access this object; using ``getattr()`` will still work, though
+  check_attribute_name(name)
+/opt/conda/envs/mimic_data_extraction/lib/python3.9/site-packages/tables/attributeset.py:457: NaturalNameWarning: object name is not a valid Python identifier: 'block0_items_nameAggregation Function'; it does not match the pattern ``^[a-zA-Z_][a-zA-Z0-9_]*$``; you will not be able to use natural naming to access this object; using ``getattr()`` will still work, though
+  check_attribute_name(name)
+[2026-03-31 03:03:09 UTC] finalize_numerics: wrote vitals_hourly_data.h5
+LOADED vitals_hourly_data
+SKIPPED codes_data
+SKIPPED notes_data
+Saving Outcomes...
+/opt/mimic-extract/mimic_direct_extract.py:527: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  vent_data = vent_data.apply(add_outcome_indicators)
+/opt/mimic-extract/mimic_direct_extract.py:549: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  out_data = out_data.apply(add_blank_indicators)
+/opt/mimic-extract/mimic_direct_extract.py:587: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted vaso from vasopressor_durations
+/opt/mimic-extract/mimic_direct_extract.py:587: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted adenosine from adenosine_durations
+/opt/mimic-extract/mimic_direct_extract.py:587: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted dobutamine from dobutamine_durations
+/opt/mimic-extract/mimic_direct_extract.py:587: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted dopamine from dopamine_durations
+/opt/mimic-extract/mimic_direct_extract.py:587: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted epinephrine from epinephrine_durations
+/opt/mimic-extract/mimic_direct_extract.py:587: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted isuprel from isuprel_durations
+/opt/mimic-extract/mimic_direct_extract.py:587: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted milrinone from milrinone_durations
+/opt/mimic-extract/mimic_direct_extract.py:587: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted norepinephrine from norepinephrine_durations
+/opt/mimic-extract/mimic_direct_extract.py:587: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted phenylephrine from phenylephrine_durations
+/opt/mimic-extract/mimic_direct_extract.py:587: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted vasopressin from vasopressin_durations
+/opt/mimic-extract/mimic_direct_extract.py:645: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted colloid_bolus
+/opt/mimic-extract/mimic_direct_extract.py:645: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted crystalloid_bolus
+/opt/mimic-extract/mimic_direct_extract.py:645: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  new_data = new_data.apply(add_outcome_indicators)
+Extracted nivdurations
+Shape of Y :  (1667925, 14)
+/opt/mimic-extract/mimic_direct_extract.py:705: FutureWarning: Starting with pandas version 3.0 all arguments of to_hdf except for the argument 'path_or_buf' will be keyword-only.
+  Y.to_hdf(os.path.join(outPath, outcome_hd5_filename), 'Y')
+Numerics (1667925, 21) ['subject_id', 'hadm_id', 'icustay_id', 'hours_in'] ['LEVEL2', 'Aggregation Function']
+Outcomes (1667925, 14) ['subject_id', 'hadm_id', 'icustay_id', 'hours_in'] [None] Index(['vent', 'vaso', 'adenosine', 'dobutamine', 'dopamine', 'epinephrine',
+       'isuprel', 'milrinone', 'norepinephrine', 'phenylephrine',
+       'vasopressin', 'colloid_bolus', 'crystalloid_bolus', 'nivdurations'],
+      dtype='object')
+(17013, 31) ['icustay_id'] [None]
+Shape of X :  (1667925, 21)
+Shape of Y :  (1667925, 14)
+Shape of static :  (17013, 29)
+Variable names :  diastolic blood pressure,diastolic blood pressure,diastolic blood pressure,heart rate,heart rate,heart rate,mean blood pressure,mean blood pressure,mean blood pressure,oxygen saturation,oxygen saturation,oxygen saturation,respiratory rate,respiratory rate,respiratory rate,systolic blood pressure,systolic blood pressure,systolic blood pressure,temperature,temperature,temperature
+Output names :  dobutamine,dopamine,epinephrine,isuprel,milrinone,norepinephrine,phenylephrine,vasopressin,colloid_bolus,crystalloid_bolus,nivdurations
+Static data :  insurance,admittime,diagnosis_at_admission,dischtime,discharge_location,fullcode_first,dnr_first,fullcode,dnr,dnr_first_charttime,timecmo_chart,cmo_first,cmo_last,cmo,deathtime,intime,outtime,los_icu,admission_type,first_careunit,mort_icu,mort_hosp,hospital_expire_flag,hospstay_seq,readmission_30,max_hours
+/opt/mimic-extract/mimic_direct_extract.py:1214: FutureWarning: Starting with pandas version 3.0 all arguments of to_hdf except for the argument 'path_or_buf' will be keyword-only.
+  X.to_hdf(os.path.join(outPath, dynamic_hd5_filt_filename), 'vitals_labs')
+/opt/conda/envs/mimic_data_extraction/lib/python3.9/site-packages/tables/attributeset.py:457: NaturalNameWarning: object name is not a valid Python identifier: 'axis0_nameAggregation Function'; it does not match the pattern ``^[a-zA-Z_][a-zA-Z0-9_]*$``; you will not be able to use natural naming to access this object; using ``getattr()`` will still work, though
+  check_attribute_name(name)
+/opt/conda/envs/mimic_data_extraction/lib/python3.9/site-packages/tables/attributeset.py:457: NaturalNameWarning: object name is not a valid Python identifier: 'block0_items_nameAggregation Function'; it does not match the pattern ``^[a-zA-Z_][a-zA-Z0-9_]*$``; you will not be able to use natural naming to access this object; using ``getattr()`` will still work, though
+  check_attribute_name(name)
+/opt/mimic-extract/mimic_direct_extract.py:1215: FutureWarning: Starting with pandas version 3.0 all arguments of to_hdf except for the argument 'path_or_buf' will be keyword-only.
+  Y.to_hdf(os.path.join(outPath, dynamic_hd5_filt_filename), 'interventions')
+/opt/mimic-extract/mimic_direct_extract.py:1217: FutureWarning: Starting with pandas version 3.0 all arguments of to_hdf except for the argument 'path_or_buf' will be keyword-only.
+  data.to_hdf(os.path.join(outPath, dynamic_hd5_filt_filename), 'patients', format='table')
+/opt/mimic-extract/mimic_direct_extract.py:1225: FutureWarning: Starting with pandas version 3.0 all arguments of to_hdf except for the argument 'path_or_buf' will be keyword-only.
+  X_mean.to_hdf(os.path.join(outPath, dynamic_hd5_filt_filename), 'vitals_labs_mean')
+/opt/conda/envs/mimic_data_extraction/lib/python3.9/site-packages/tables/attributeset.py:457: NaturalNameWarning: object name is not a valid Python identifier: 'axis0_nameAggregation Function'; it does not match the pattern ``^[a-zA-Z_][a-zA-Z0-9_]*$``; you will not be able to use natural naming to access this object; using ``getattr()`` will still work, though
+  check_attribute_name(name)
+/opt/conda/envs/mimic_data_extraction/lib/python3.9/site-packages/tables/attributeset.py:457: NaturalNameWarning: object name is not a valid Python identifier: 'block0_items_nameAggregation Function'; it does not match the pattern ``^[a-zA-Z_][a-zA-Z0-9_]*$``; you will not be able to use natural naming to access this object; using ``getattr()`` will still work, though
+  check_attribute_name(name)
+
+('diastolic blood pressure', 'count'): 100.0% present
+('diastolic blood pressure', 'mean'): 87.9% present
+('diastolic blood pressure', 'std'): 14.899999999999999% present
+('heart rate', 'count'): 100.0% present
+('heart rate', 'mean'): 90.60000000000001% present
+('heart rate', 'std'): 9.4% present
+('mean blood pressure', 'count'): 100.0% present
+('mean blood pressure', 'mean'): 87.5% present
+('mean blood pressure', 'std'): 15.299999999999999% present
+('oxygen saturation', 'count'): 100.0% present
+('oxygen saturation', 'mean'): 86.7% present
+('oxygen saturation', 'std'): 12.6% present
+('respiratory rate', 'count'): 100.0% present
+('respiratory rate', 'mean'): 89.3% present
+('respiratory rate', 'std'): 16.1% present
+('systolic blood pressure', 'count'): 100.0% present
+('systolic blood pressure', 'mean'): 87.9% present
+('systolic blood pressure', 'std'): 14.899999999999999% present
+('temperature', 'count'): 100.0% present
+('temperature', 'mean'): 29.7% present
+('temperature', 'std'): 19.6% present
+% of subjects had at least 1 present
+0: 100.0%
+1: 99.3%
+2: 89.9%
+3: 100.0%
+4: 99.3%
+5: 88.2%
+6: 100.0%
+7: 99.3%
+8: 89.2%
+9: 100.0%
+10: 99.7%
+11: 91.0%
+12: 100.0%
+13: 99.3%
+14: 91.4%
+15: 100.0%
+16: 99.3%
+17: 90.0%
+18: 100.0%
+19: 99.2%
+20: 66.3%
+
+
+% of subjects had at least 2 present
+0: 100.0%
+1: 99.3%
+2: 84.0%
+3: 100.0%
+4: 99.3%
+5: 80.0%
+6: 100.0%
+7: 99.3%
+8: 83.1%
+9: 100.0%
+10: 99.6%
+11: 84.6%
+12: 100.0%
+13: 99.3%
+14: 86.0%
+15: 100.0%
+16: 99.3%
+17: 84.1%
+18: 100.0%
+19: 99.1%
+20: 64.1%
+
+
+% of subjects had at least 3 present
+0: 100.0%
+1: 99.3%
+2: 78.3%
+3: 100.0%
+4: 99.3%
+5: 71.89999999999999%
+6: 100.0%
+7: 99.3%
+8: 77.4%
+9: 100.0%
+10: 99.5%
+11: 78.10000000000001%
+12: 100.0%
+13: 99.3%
+14: 80.80000000000001%
+15: 100.0%
+16: 99.3%
+17: 78.4%
+18: 100.0%
+19: 99.0%
+20: 62.8%
+
+
+Done!
+
+pipeline complete. Output in /opt/mimic-extract/data/curated/min48hr
+Done: min48hr

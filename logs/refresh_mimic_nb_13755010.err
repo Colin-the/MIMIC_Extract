@@ -1,0 +1,120 @@
+[NbConvertApp] Converting notebook /home/ccampb47/work/MIMIC_Extract/notebooks/curated_mimic_iii_analysis_executed copy 2.ipynb to notebook
+Traceback (most recent call last):
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/bin/jupyter-nbconvert", line 6, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/jupyter_core/application.py", line 284, in launch_instance
+    super().launch_instance(argv=argv, **kwargs)
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/traitlets/config/application.py", line 1075, in launch_instance
+    app.start()
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/nbconvertapp.py", line 420, in start
+    self.convert_notebooks()
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/nbconvertapp.py", line 597, in convert_notebooks
+    self.convert_single_notebook(notebook_filename)
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/nbconvertapp.py", line 563, in convert_single_notebook
+    output, resources = self.export_single_notebook(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/nbconvertapp.py", line 487, in export_single_notebook
+    output, resources = self.exporter.from_filename(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/exporters/exporter.py", line 201, in from_filename
+    return self.from_file(f, resources=resources, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/exporters/exporter.py", line 220, in from_file
+    return self.from_notebook_node(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/exporters/notebook.py", line 36, in from_notebook_node
+    nb_copy, resources = super().from_notebook_node(nb, resources, **kw)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/exporters/exporter.py", line 154, in from_notebook_node
+    nb_copy, resources = self._preprocess(nb_copy, resources)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/exporters/exporter.py", line 353, in _preprocess
+    nbc, resc = preprocessor(nbc, resc)
+                ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/preprocessors/base.py", line 48, in __call__
+    return self.preprocess(nb, resources)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/preprocessors/execute.py", line 103, in preprocess
+    self.preprocess_cell(cell, resources, index)
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbconvert/preprocessors/execute.py", line 124, in preprocess_cell
+    cell = self.execute_cell(cell, index, store_history=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/jupyter_core/utils/__init__.py", line 165, in wrapped
+    return loop.run_until_complete(inner)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/cvmfs/soft.computecanada.ca/gentoo/2023/x86-64-v3/usr/lib/python3.11/asyncio/base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbclient/client.py", line 1062, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/home/ccampb47/work/MIMIC_Extract/.venv_stats/lib/python3.11/site-packages/nbclient/client.py", line 918, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+def build_lens_method_hour_matrix(X, requested_feature, requested_methods):
+    if not isinstance(X.columns, pd.MultiIndex):
+        raise ValueError('Expected MultiIndex columns in vitals_labs data.')
+
+    time_level = _get_time_level_name(X.index)
+    hour_values = X.index.get_level_values(time_level)
+    all_hours = np.sort(np.asarray(pd.Index(hour_values).unique(), dtype=int))
+
+    mean_cols = [c for c in X.columns if str(c[1]).lower() == 'mean']
+    feature_map = {str(c[0]).lower(): str(c[0]) for c in mean_cols}
+
+    actual = _find_feature_name(feature_map, requested_feature)
+    if actual is None:
+        matrix = pd.DataFrame(np.nan, index=requested_methods, columns=all_hours)
+        matrix.columns.name = 'Hour'
+        matrix.index.name = 'Aggregation'
+        return matrix, True
+
+    col = next(c for c in mean_cols if str(c[0]) == actual)
+    rows = []
+    for method in requested_methods:
+        agg = _aggregate_series_by_hour(X[col], hour_values, method)
+        agg = agg.reindex(all_hours)
+        rows.append(pd.Series(agg.values, index=all_hours, name=method))
+
+    matrix = pd.DataFrame(rows, index=requested_methods)
+    matrix.columns.name = 'Hour'
+    matrix.index.name = 'Aggregation'
+    return matrix, False
+
+
+def plot_lens_method_hour_heatmap(matrix, feature, missing):
+    plt.figure(figsize=(14, 4))
+    sns.heatmap(matrix, cmap='coolwarm')
+    title = f'Lens Plot: {feature}'
+    if missing:
+        title += ' (missing in dataset)'
+    plt.title(title)
+    plt.xlabel('Hour')
+    plt.ylabel('Aggregation')
+    plt.tight_layout()
+    plt.show()
+
+
+# Build lens plots from baseline vitals_labs data.
+base_pat = maybe_sample_record_ids(BASELINE['patients'], MAX_RECORDS_PER_SCENARIO)
+X_base_small = subset_X_by_patients(BASELINE['X'], base_pat)
+
+for feature in LENS_FEATURES:
+    matrix, missing = build_lens_method_hour_matrix(X_base_small, feature, AGG_METHODS)
+    plot_lens_method_hour_heatmap(matrix, feature, missing)
+
+------------------
+
+
+[31m---------------------------------------------------------------------------[39m
+[31mNameError[39m                                 Traceback (most recent call last)
+[36mCell[39m[36m [39m[32mIn[6][39m[32m, line 49[39m
+[32m     46[39m base_pat = maybe_sample_record_ids(BASELINE[[33m'[39m[33mpatients[39m[33m'[39m], MAX_RECORDS_PER_SCENARIO)
+[32m     47[39m X_base_small = subset_X_by_patients(BASELINE[[33m'[39m[33mX[39m[33m'[39m], base_pat)
+[32m---> [39m[32m49[39m [38;5;28;01mfor[39;00m feature [38;5;129;01min[39;00m [43mLENS_FEATURES[49m:
+[32m     50[39m     matrix, missing = build_lens_method_hour_matrix(X_base_small, feature, AGG_METHODS)
+[32m     51[39m     plot_lens_method_hour_heatmap(matrix, feature, missing)
+
+[31mNameError[39m: name 'LENS_FEATURES' is not defined
+

@@ -58,6 +58,36 @@ outcome_columns_filename = 'outcomes_colnames.txt'
 ID_COLS = ['subject_id', 'hadm_id', 'icustay_id']
 ITEM_COLS = ['itemid', 'label', 'LEVEL1', 'LEVEL2']
 
+# LEVEL2 spellings must match resources/itemid_to_variable_map.csv
+CORE_VITAL_LEVEL2 = frozenset([
+    'Heart Rate',
+    'Systolic blood pressure',
+    'Diastolic blood pressure',
+    'Mean blood pressure',
+    'Respiratory rate',
+    'Temperature',
+    'Oxygen saturation',
+])
+
+
+def _progress(msg):
+    ts = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
+    print('[{}] {}'.format(ts, msg), flush=True)
+
+
+def filter_variable_map_to_core_vitals(var_map):
+    """Restrict the itemid map to the seven core bedside vitals only."""
+    n_before = len(var_map)
+    out = var_map.loc[var_map['LEVEL2'].isin(CORE_VITAL_LEVEL2)].copy()
+    n_after = len(out)
+    _progress(
+        'Numerics: using %d / %d mapping rows (core vitals only: %s)' % (
+            n_after, n_before, ', '.join(sorted(CORE_VITAL_LEVEL2))))
+    if n_after == 0:
+        raise ValueError(
+            'No rows left after CORE_VITAL_LEVEL2 filter; check LEVEL2 names in itemid_to_variable_map.csv')
+    return out
+
 def add_outcome_indicators(out_gb):
     subject_id = out_gb['subject_id'].unique()[0]
     hadm_id = out_gb['hadm_id'].unique()[0]
@@ -105,9 +135,10 @@ def continuous_outcome_processing(out_data, data, icustay_timediff):
     out_data['intime'] = out_data['icustay_id'].map(data['intime'].to_dict())
     out_data['outtime'] = out_data['icustay_id'].map(data['outtime'].to_dict())
     out_data['max_hours'] = out_data['icustay_id'].map(icustay_timediff)
-    out_data['starttime'] = out_data['starttime'] - out_data['intime']
+    # Ensure datetime types for subtraction (colloid_bolus/crystalloid_bolus charttime can differ from intime)
+    out_data['starttime'] = pd.to_datetime(out_data['starttime']) - pd.to_datetime(out_data['intime'])
     out_data['starttime'] = out_data.starttime.apply(lambda x: x.days*24 + x.seconds//3600)
-    out_data['endtime'] = out_data['endtime'] - out_data['intime']
+    out_data['endtime'] = pd.to_datetime(out_data['endtime']) - pd.to_datetime(out_data['intime'])
     out_data['endtime'] = out_data.endtime.apply(lambda x: x.days*24 + x.seconds//3600)
     out_data = out_data.groupby(['icustay_id'])
 
@@ -146,8 +177,8 @@ def save_pop(
 def get_variable_mapping(mimic_mapping_filename):
     # Read in the second level mapping of the itemids
     var_map = pd.read_csv(mimic_mapping_filename, index_col=None)
-    var_map = var_map.ix[(var_map['LEVEL2'] != '') & (var_map['COUNT']>0)]
-    var_map = var_map.ix[(var_map['STATUS'] == 'ready')]
+    var_map = var_map.loc[(var_map['LEVEL2'] != '') & (var_map['COUNT']>0)]
+    var_map = var_map.loc[(var_map['STATUS'] == 'ready')]
     var_map['ITEMID'] = var_map['ITEMID'].astype(int)
 
     return var_map
@@ -215,7 +246,7 @@ def range_unnest(df, col, out_col_name=None, reset_index=False):
     if out_col_name is None: out_col_name = col
 
     col_flat = pd.DataFrame(
-        [[i, x] for i, y in df[col].iteritems() for x in range(y+1)],
+        [[i, x] for i, y in df[col].items() for x in range(int(y)+1)],
         columns=[df.index.names[0], out_col_name]
     )
 
@@ -225,18 +256,20 @@ def range_unnest(df, col, out_col_name=None, reset_index=False):
 # TODO(mmd): improve args
 def save_numerics(
     data, X, I, var_map, var_ranges, outPath, dynamic_filename, columns_filename, subjects_filename,
-    times_filename, dynamic_hd5_filename, group_by_level2, apply_var_limit, min_percent
+    times_filename, dynamic_hd5_filename, group_by_level2, apply_var_limit, min_percent,
+    skip_final_output=False, progress_label=''
 ):
     assert len(data) > 0 and len(X) > 0, "Must provide some input data to process."
 
+    tag = '[%s] ' % progress_label if progress_label else ''
+    _progress(tag + 'save_numerics: raw query rows=%d, icustays in cohort=%d' % (len(X), len(data)))
+
     var_map = var_map[
         ['LEVEL2', 'ITEMID', 'LEVEL1']
-    ].rename_axis(
-        {'LEVEL2': 'LEVEL2', 'LEVEL1': 'LEVEL1', 'ITEMID': 'itemid'}, axis=1
-    ).set_index('itemid')
+    ].rename(columns={'ITEMID': 'itemid'}).set_index('itemid')
 
     X['value'] = pd.to_numeric(X['value'], 'coerce')
-    X.astype({k: int for k in ID_COLS}, inplace=True)
+    X = X.astype({k: int for k in ID_COLS})
 
     to_hours = lambda x: max(0, x.days*24 + x.seconds // 3600)
 
@@ -249,13 +282,20 @@ def save_numerics(
     # Pandas has a bug with the below for small X
     #X = X.join([var_map, I]).set_index(['label', 'LEVEL1', 'LEVEL2'], append=True)
     X = X.join(var_map).join(I).set_index(['label', 'LEVEL1', 'LEVEL2'], append=True)
+    _progress(tag + 'save_numerics: joined var_map + d_items')
     standardize_units(X, name_col='LEVEL1', inplace=True)
 
     if apply_var_limit > 0: 
         X = apply_variable_limits(X, var_ranges, 'LEVEL2')
+        _progress(tag + 'save_numerics: variable limits applied')
 
     group_item_cols = ['LEVEL2'] if group_by_level2 else ITEM_COLS
-    X = X.groupby(ID_COLS + group_item_cols + ['hours_in']).agg(['mean', 'std', 'count'])
+    # Only aggregate numeric columns (value); avoid mean/std on object dtype
+    numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
+    if len(numeric_cols) == 0:
+        raise ValueError("No numeric columns to aggregate in save_numerics")
+    _progress(tag + 'save_numerics: aggregating by hour (groupby)...')
+    X = X[numeric_cols].groupby(ID_COLS + group_item_cols + ['hours_in']).agg(['mean', 'std', 'count'])
     X.columns = X.columns.droplevel(0)
     X.columns.names = ['Aggregation Function']
 
@@ -275,6 +315,7 @@ def save_numerics(
     fill_df.set_index(ID_COLS + ['hours_in'], inplace=True)
 
     # Pivot table droups NaN columns so you lose any uniformly NaN.
+    _progress(tag + 'save_numerics: unstack / reindex full hour grid...')
     X = X.unstack(level = group_item_cols)
     X.columns = X.columns.reorder_levels(order=group_item_cols + ['Aggregation Function'])
    
@@ -291,7 +332,10 @@ def save_numerics(
 
     X = X.sort_index(axis=0).sort_index(axis=1)
 
-    print("Shape of X : ", X.shape)
+    _progress(tag + 'save_numerics: tensor shape %s' % (X.shape,))
+
+    if skip_final_output:
+        return X
 
     # Turn back into columns
     if columns_filename is not None:
@@ -300,9 +344,9 @@ def save_numerics(
 
     # Get the max time for each of the subjects so we can reconstruct!
     if subjects_filename is not None:
-        np.save(os.path.join(outPath, subjects_filename), data['subject_id'].as_matrix())
+        np.save(os.path.join(outPath, subjects_filename), data['subject_id'].values)
     if times_filename is not None: 
-        np.save(os.path.join(outPath, times_filename), data['max_hours'].as_matrix())
+        np.save(os.path.join(outPath, times_filename), data['max_hours'].values)
 
     #fix nan in count to be zero
     idx = pd.IndexSlice
@@ -321,10 +365,44 @@ def save_numerics(
     X = X.drop(columns = drop_col)
 
     ########
-    if dynamic_filename is not None: np.save(os.path.join(outPath, dynamic_filename), X.as_matrix())
+    if dynamic_filename is not None: np.save(os.path.join(outPath, dynamic_filename), X.values)
     if dynamic_hd5_filename is not None: X.to_hdf(os.path.join(outPath, dynamic_hd5_filename), 'X')
 
     return X
+
+
+def _finalize_and_write_numerics(X, data, outPath, dynamic_filename, columns_filename,
+                                 subjects_filename, times_filename, dynamic_hd5_filename,
+                                 group_by_level2, min_percent):
+    """Apply final processing (fix nan, drop cols) and write numerics output files."""
+    _progress('finalize_numerics: combined X shape %s — writing HDF5/columns...' % (X.shape,))
+    idx = pd.IndexSlice
+    if group_by_level2:
+        X.loc[:, idx[:, 'count']] = X.loc[:, idx[:, 'count']].fillna(0)
+    else:
+        X.loc[:, idx[:,:,:,:, 'count']] = X.loc[:, idx[:,:,:,:, 'count']].fillna(0)
+    n = round((1 - min_percent / 100.0) * X.shape[0])
+    drop_col = []
+    for k in X.columns:
+        if k[-1] == 'mean':
+            if X[k].isnull().sum() > n:
+                drop_col.append(k[:-1])
+    X = X.drop(columns=drop_col)
+    if columns_filename is not None:
+        col_names = [str(x) for x in X.columns.values]
+        with open(os.path.join(outPath, columns_filename), 'w') as f:
+            f.write('\n'.join(col_names))
+    if subjects_filename is not None:
+        np.save(os.path.join(outPath, subjects_filename), data['subject_id'].values)
+    if times_filename is not None:
+        np.save(os.path.join(outPath, times_filename), data['max_hours'].values)
+    if dynamic_filename is not None:
+        np.save(os.path.join(outPath, dynamic_filename), X.values)
+    if dynamic_hd5_filename is not None:
+        X.to_hdf(os.path.join(outPath, dynamic_hd5_filename), 'X')
+        _progress('finalize_numerics: wrote %s' % dynamic_hd5_filename)
+    return X
+
 
 def save_notes(notes, outPath=None, notes_h5_filename=None):
     notes_id_cols = list(set(ID_COLS).intersection(notes.columns))# + ['row_id'] TODO: what is row_id?
@@ -508,7 +586,11 @@ def save_outcome(
         new_data = continuous_outcome_processing(new_data, data, icustay_timediff)
         new_data = new_data.apply(add_outcome_indicators)
         new_data.rename(columns={'on': c}, inplace=True)
-        new_data = new_data.reset_index()
+        # pandas may include group key in columns; avoid "cannot insert icustay_id, already exists"
+        if 'icustay_id' not in new_data.columns:
+            new_data = new_data.reset_index()
+        else:
+            new_data = new_data.reset_index(drop=True)
         # c may not be in Y if we are only extracting a subset of the population, in which c was never
         # performed.
         if not c in new_data:
@@ -551,12 +633,21 @@ def save_outcome(
             and v.charttime between intime and outtime
             """
 
-        new_data = querier.query(query_string=query, extra_template_vars=dict(table=task))
+        try:
+            new_data = querier.query(query_string=query, extra_template_vars=dict(table=task))
+        except Exception as e:
+            # Some exported DuckDB snapshots may be missing optional derived tables
+            # (e.g., nivdurations). Keep pipeline running and default that signal to 0.
+            _progress("Outcome task '%s' skipped due to query error: %s" % (task, str(e)))
+            continue
         if new_data.shape[0] == 0: continue
         new_data = continuous_outcome_processing(new_data, data, icustay_timediff)
         new_data = new_data.apply(add_outcome_indicators)
         new_data.rename(columns = {'on':task}, inplace=True)
-        new_data = new_data.reset_index()
+        if 'icustay_id' not in new_data.columns:
+            new_data = new_data.reset_index()
+        else:
+            new_data = new_data.reset_index(drop=True)
         Y = Y.merge(
             new_data[['subject_id', 'hadm_id', 'icustay_id', 'hours_in', task]],
             on=['subject_id', 'hadm_id', 'icustay_id', 'hours_in'],
@@ -568,6 +659,11 @@ def save_outcome(
         Y[task] = Y[task].astype(int)
         Y = Y.reset_index(drop=True)
         print('Extracted ' + task)
+
+    # Ensure a stable schema even if some optional concept tables were unavailable.
+    for task in tasks:
+        if task not in Y.columns:
+            Y[task] = 0
 
 
     # TODO: ADD THE RBC/PLT/PLASMA DATA
@@ -662,7 +758,7 @@ def apply_variable_limits(df, var_ranges, var_names_index_col='LEVEL2'):
 
 def plot_variable_histograms(col_names, df):
     # Plot some of the data, just to make sure it looks ok
-    for c, vals in df.iteritems():
+    for c, vals in df.items():
         n = vals.dropna().count()
         if n < 2: continue
 
@@ -723,6 +819,10 @@ if __name__ == '__main__':
                     '1 - extract if not present in the data directory, 2 - extract even if there is data')
     ap.add_argument('--pop_size', type=int, default=0,
                     help='Size of population to extract')
+    ap.add_argument('--numerics_batch_size', type=int, default=0,
+                    help='Process numerics in batches of N icustays to reduce memory. 0 = no batching (process all at once).')
+    ap.add_argument('--extract_all_numerics', action='store_true',
+                    help='Extract every mapped numeric (legacy). Default: only seven core vitals (HR, BP sys/dias/mean, RR, temp, SpO2).')
     ap.add_argument('--exit_after_loading', type=int, default=0)
     ap.add_argument('--var_limits', type=int, default=1,
                     help='Whether to create a version of the data with variable limits included. ' +
@@ -734,12 +834,14 @@ if __name__ == '__main__':
                     help='Postgres host. Try "/var/run/postgresql/" for Unix domain socket errors.')
     ap.add_argument('--psql_dbname', type=str, default='mimic',
                     help='Postgres database name.')
-    ap.add_argument('--psql_schema_name', type=str, default='mimiciii',
+    ap.add_argument('--psql_schema_name', type=str, default='public,mimiciii',
                     help='Postgres database name.')
     ap.add_argument('--psql_user', type=str, default=None,
                     help='Postgres user.')
     ap.add_argument('--psql_password', type=str, default=None,
                     help='Postgres password.')
+    ap.add_argument('--db_path', type=str, default=None,
+                    help='Path to DuckDB file. If provided, uses DuckDB instead of Postgres.')
     ap.add_argument('--no_group_by_level2', action='store_false', dest='group_by_level2', default=True,
                     help="Don't group by level2.")
     
@@ -752,6 +854,8 @@ if __name__ == '__main__':
                     'that are based on both the train and test sets, rather than just the train set.')
     ap.add_argument('--min_age', type=int, default=15,
                     help='Minimum age of patients to be included')
+    ap.add_argument('--max_age', type=int, default=999,
+                    help='Maximum age of patients to be included (999 = no upper limit)')
     ap.add_argument('--min_duration', type=int, default=12,
                     help='Minimum hours of stay to be included')
     ap.add_argument('--max_duration', type=int, default=240,
@@ -760,6 +864,8 @@ if __name__ == '__main__':
     #############
     # Parse args
     args = vars(ap.parse_args())
+    if os.environ.get('MIMIC_EXTRACT_ALL_NUMERICS', '').strip().lower() in ('1', 'true', 'yes'):
+        args['extract_all_numerics'] = True
     for key in sorted(args.keys()):
         print(key, args[key])
 
@@ -802,12 +908,18 @@ if __name__ == '__main__':
 
     dbname = args['psql_dbname']
     schema_name = args['psql_schema_name']
-    query_args = {'dbname': dbname}
-    if args['psql_host'] is not None: query_args['host'] = args['psql_host']
-    if args['psql_user'] is not None: query_args['user'] = args['psql_user']
-    if args['psql_password'] is not None: query_args['password'] = args['psql_password']
-
-    querier = MIMIC_Querier(query_args=query_args, schema_name=schema_name)
+    db_path = args.get('db_path')
+    
+    if db_path:
+        print(f"Using DuckDB: {db_path}")
+        querier = MIMIC_Querier(db_path=db_path, schema_name=schema_name)
+    else:
+        print(f"Using PostgreSQL: {args.get('psql_host', 'localhost')}")
+        query_args = {'dbname': dbname}
+        if args['psql_host'] is not None: query_args['host'] = args['psql_host']
+        if args['psql_user'] is not None: query_args['user'] = args['psql_user']
+        if args['psql_password'] is not None: query_args['password'] = args['psql_password']
+        querier = MIMIC_Querier(query_args=query_args, schema_name=schema_name)
 
     #############
     # Population extraction
@@ -824,13 +936,14 @@ if __name__ == '__main__':
             pop_size_string = 'LIMIT ' + str(args['pop_size'])
 
         min_age_string = str(args['min_age'])
+        max_age_string = str(args['max_age'])
         min_dur_string = str(args['min_duration'])
         max_dur_string = str(args['max_duration'])
         min_day_string = str(float(args['min_duration'])/24)
 
         template_vars = dict(
-            limit=pop_size_string, min_age=min_age_string, min_dur=min_dur_string, max_dur=max_dur_string,
-            min_day=min_day_string
+            limit=pop_size_string, min_age=min_age_string, max_age=max_age_string,
+            min_dur=min_dur_string, max_dur=max_dur_string, min_day=min_day_string
         )
 
         data_df = querier.query(query_file=STATICS_QUERY_PATH, extra_template_vars=template_vars)
@@ -844,6 +957,7 @@ if __name__ == '__main__':
         # So all subsequent queries will limit to just that already extracted in data_df.
         querier.add_exclusion_criteria_from_df(data, columns=['hadm_id', 'subject_id'])
         print("loaded static_data")
+        _progress('Stage static: cohort ready (%d icustays); DB queries will use this exclusion set' % len(data))
 
     #############
     # If there is numerics extraction
@@ -854,15 +968,20 @@ if __name__ == '__main__':
     elif (args['extract_numerics'] == 1 & (not isfile(os.path.join(outPath, dynamic_hd5_filename)))) | (args['extract_numerics'] == 2):
         print("Extracting vitals data...")
         start_time = time.time()
+        _progress('Stage vitals: starting (extract_all_numerics=%s)' % args.get('extract_all_numerics', False))
 
         ########
         # Step 1) Get the set of variables we want for the patients we've identified!
         icuids_to_keep = get_values_by_name_from_df_column_or_index(data, 'icustay_id')
         icuids_to_keep = set([str(s) for s in icuids_to_keep])
         data = data.copy(deep=True).reset_index().set_index('icustay_id')
+        to_hours = lambda x: max(0, x.days*24 + x.seconds // 3600)
+        data['max_hours'] = (data['outtime'] - data['intime']).apply(to_hours)
 
         # Select out SID, TIME, ITEMID, VALUE form each of the sources!
         var_map = get_variable_mapping(mimic_mapping_filename)
+        if not args.get('extract_all_numerics', False):
+            var_map = filter_variable_map_to_core_vitals(var_map)
         var_ranges = get_variable_ranges(range_filename)
 
         chartitems_to_keep = var_map.loc[var_map['LINKSTO'] == 'chartevents'].ITEMID
@@ -870,57 +989,135 @@ if __name__ == '__main__':
 
         labitems_to_keep = var_map.loc[var_map['LINKSTO'] == 'labevents'].ITEMID
         labitems_to_keep = set([ str(i) for i in labitems_to_keep ])
+        _progress(
+            'Stage vitals: itemid sets — chart=%d, lab=%d (query will restrict to these)'
+            % (len(chartitems_to_keep), len(labitems_to_keep)))
 
+        numerics_batch_size = args.get('numerics_batch_size', 0)
+        icuids_list = list(icuids_to_keep)
 
-        # TODO(mmd): Use querier, move to file
-        con = psycopg2.connect(**query_args)
-        cur = con.cursor()
+        # We use querier instead of manual connection
+        # con = psycopg2.connect(**query_args)
+        # cur = con.cursor()
+        # cur.execute('SET search_path to ' + schema_name)
 
-        print("  starting db query with %d subjects..." % (len(icuids_to_keep)))
-        cur.execute('SET search_path to ' + schema_name)
-        query = \
-        """
-        select c.subject_id, i.hadm_id, c.icustay_id, c.charttime, c.itemid, c.value, valueuom
-        FROM icustay_detail i
-        INNER JOIN chartevents c ON i.icustay_id = c.icustay_id
-        where c.icustay_id in ({icuids})
-          and c.itemid in ({chitem})
-          and c.charttime between intime and outtime
-          and c.error is distinct from 1
-          and c.valuenum is not null
+        if numerics_batch_size > 0 and len(icuids_list) > numerics_batch_size:
+            # Batched extraction to reduce peak memory
+            n_batches = (len(icuids_list) + numerics_batch_size - 1) // numerics_batch_size
+            print("  processing %d icustays in %d batches of %d..." % (len(icuids_list), n_batches, numerics_batch_size))
+            _progress(
+                'Stage vitals: batched mode — %d icustays in %d batches of %d'
+                % (len(icuids_list), n_batches, numerics_batch_size))
+            X_batches = []
+            for b in range(n_batches):
+                batch_icuids = icuids_list[b * numerics_batch_size:(b + 1) * numerics_batch_size]
+                batch_icuids_set = set([str(i) for i in batch_icuids])
+                print("  batch %d/%d: %d icustays" % (b + 1, n_batches, len(batch_icuids)))
+                _progress(
+                    'Vitals batch %d/%d: starting SQL (%d icustays) [%.0fs since vitals start]'
+                    % (b + 1, n_batches, len(batch_icuids), time.time() - start_time))
+                query = """
+                select c.subject_id, i.hadm_id, c.icustay_id, c.charttime, c.itemid, c.value, valueuom
+                FROM icustay_detail i
+                INNER JOIN chartevents c ON i.icustay_id = c.icustay_id
+                where c.icustay_id in ({icuids})
+                  and c.itemid in ({chitem})
+                  and c.charttime between intime and outtime
+                  and c.error is distinct from 1
+                  and c.valuenum is not null
 
-        UNION ALL
+                UNION ALL
 
-        select distinct i.subject_id, i.hadm_id, i.icustay_id, l.charttime, l.itemid, l.value, valueuom
-        FROM icustay_detail i
-        INNER JOIN labevents l ON i.hadm_id = l.hadm_id
-        where i.icustay_id in ({icuids})
-          and l.itemid in ({lbitem})
-          and l.charttime between (intime - interval '6' hour) and outtime
-          and l.valuenum > 0 -- lab values cannot be 0 and cannot be negative
-        ;
-        """.format(icuids=','.join(icuids_to_keep), chitem=','.join(chartitems_to_keep), lbitem=','.join(labitems_to_keep))
-        X = pd.read_sql_query(query, con)
+                select distinct i.subject_id, i.hadm_id, i.icustay_id, l.charttime, l.itemid, l.value, valueuom
+                FROM icustay_detail i
+                INNER JOIN labevents l ON i.hadm_id = l.hadm_id
+                where i.icustay_id in ({icuids})
+                  and l.itemid in ({lbitem})
+                  and l.charttime between (intime - interval '6' hour) and outtime
+                  and l.valuenum > 0
+                ;
+                """.format(icuids=','.join(batch_icuids_set), chitem=','.join(chartitems_to_keep), lbitem=','.join(labitems_to_keep))
+                q_t0 = time.time()
+                X_batch = querier.query(query_string=query)
+                _progress(
+                    'Vitals batch %d/%d: SQL returned %d rows in %.1fs [%.0fs since vitals start]'
+                    % (b + 1, n_batches, len(X_batch), time.time() - q_t0, time.time() - start_time))
+                if len(X_batch) == 0:
+                    continue
+                itemids = set(X_batch.itemid.astype(str))
+                query_d_items = """
+                SELECT itemid, label, dbsource, linksto, category, unitname
+                FROM d_items
+                WHERE itemid in ({itemids})
+                ;
+                """.format(itemids=','.join(itemids))
+                I = querier.query(query_string=query_d_items).set_index('itemid')
+                data_batch = data.loc[data.index.astype(str).isin(batch_icuids_set)]
+                X_processed = save_numerics(
+                    data_batch, X_batch, I, var_map, var_ranges, outPath, dynamic_filename, columns_filename,
+                    subjects_filename, times_filename, dynamic_hd5_filename, group_by_level2=args['group_by_level2'],
+                    apply_var_limit=args['var_limits'], min_percent=args['min_percent'], skip_final_output=True,
+                    progress_label='batch %d/%d' % (b + 1, n_batches)
+                )
+                X_batches.append(X_processed)
+            # cur.close()
+            # con.close()
+            print("  db queries finished after %.3f sec" % (time.time() - start_time))
+            _progress('Stage vitals: all batch SQL done; concatenating %d batch tensors...' % len(X_batches))
+            X = pd.concat(X_batches, axis=0)
+            X = X.sort_index(axis=0).sort_index(axis=1)
+            print("Shape of X (combined): ", X.shape)
+            X = _finalize_and_write_numerics(
+                X, data, outPath, dynamic_filename, columns_filename, subjects_filename,
+                times_filename, dynamic_hd5_filename, args['group_by_level2'], args['min_percent']
+            )
+        else:
+            print("  starting db query with %d icustays..." % (len(icuids_to_keep)))
+            _progress(
+                'Stage vitals: single SQL (UNION chart+lab), %d icustays [%.0fs since vitals start]'
+                % (len(icuids_to_keep), time.time() - start_time))
+            query = """
+            select c.subject_id, i.hadm_id, c.icustay_id, c.charttime, c.itemid, c.value, valueuom
+            FROM icustay_detail i
+            INNER JOIN chartevents c ON i.icustay_id = c.icustay_id
+            where c.icustay_id in ({icuids})
+              and c.itemid in ({chitem})
+              and c.charttime between intime and outtime
+              and c.error is distinct from 1
+              and c.valuenum is not null
 
-        itemids = set(X.itemid.astype(str))
+            UNION ALL
 
-        query_d_items = \
-        """
-        SELECT itemid, label, dbsource, linksto, category, unitname
-        FROM d_items
-        WHERE itemid in ({itemids})
-        ;
-        """.format(itemids=','.join(itemids))
-        I = pd.read_sql_query(query_d_items, con).set_index('itemid')
-
-        cur.close()
-        con.close()
-        print("  db query finished after %.3f sec" % (time.time() - start_time))
-        X = save_numerics(
-            data, X, I, var_map, var_ranges, outPath, dynamic_filename, columns_filename, subjects_filename,
-            times_filename, dynamic_hd5_filename, group_by_level2=args['group_by_level2'], apply_var_limit=args['var_limits'],
-            min_percent=args['min_percent']
-        )
+            select distinct i.subject_id, i.hadm_id, i.icustay_id, l.charttime, l.itemid, l.value, valueuom
+            FROM icustay_detail i
+            INNER JOIN labevents l ON i.hadm_id = l.hadm_id
+            where i.icustay_id in ({icuids})
+              and l.itemid in ({lbitem})
+              and l.charttime between (intime - interval '6' hour) and outtime
+              and l.valuenum > 0
+            ;
+            """.format(icuids=','.join(icuids_to_keep), chitem=','.join(chartitems_to_keep), lbitem=','.join(labitems_to_keep))
+            q_t0 = time.time()
+            X = querier.query(query_string=query)
+            _progress(
+                'Stage vitals: single SQL returned %d rows in %.1fs [%.0fs since vitals start]'
+                % (len(X), time.time() - q_t0, time.time() - start_time))
+            itemids = set(X.itemid.astype(str))
+            query_d_items = """
+            SELECT itemid, label, dbsource, linksto, category, unitname
+            FROM d_items
+            WHERE itemid in ({itemids})
+            ;
+            """.format(itemids=','.join(itemids))
+            I = querier.query(query_string=query_d_items).set_index('itemid')
+            # cur.close()
+            # con.close()
+            print("  db query finished after %.3f sec" % (time.time() - start_time))
+            X = save_numerics(
+                data, X, I, var_map, var_ranges, outPath, dynamic_filename, columns_filename, subjects_filename,
+                times_filename, dynamic_hd5_filename, group_by_level2=args['group_by_level2'], apply_var_limit=args['var_limits'],
+                min_percent=args['min_percent'], progress_label='all_icustays'
+            )
 
     if X is None: print("SKIPPED vitals_hourly_data")
     else:         print("LOADED vitals_hourly_data")
@@ -1041,7 +1238,7 @@ if __name__ == '__main__':
     # Print the total proportions!
     rows, vars = X.shape
     print('')
-    for l, vals in X.iteritems():
+    for l, vals in X.items():
         ratio = 1.0 * vals.dropna().count() / rows
         print(str(l) + ': ' + str(round(ratio, 3)*100) + '% present')
 

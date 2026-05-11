@@ -182,4 +182,3 @@ dependencies:
     - pysbd==0.3.1
     - scispacy==0.2.5
     - tables==3.5.1
-prefix: /afs/csail.mit.edu/u/m/mmd/.conda/envs/mimic_extract_py36
